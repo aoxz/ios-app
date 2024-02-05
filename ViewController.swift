@@ -5,6 +5,12 @@ class ViewController: UIViewController {
     
     var database: Connection! // SQLite database connection
     
+    // Constants for table name and column names
+    let tableName = "users"
+    let columnID = Expression<Int>("id")
+    let columnName = Expression<String>("name")
+    let columnAge = Expression<Int>("age")
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -16,30 +22,47 @@ class ViewController: UIViewController {
             // Initialize the SQLite database connection
             database = try Connection(dbPath)
             
-            // Define table and columns
-            let users = Table("users")
-            let id = Expression<Int>("id")
-            let name = Expression<String>("name")
-            let age = Expression<Int>("age")
-            
             // Create the 'users' table if it doesn't exist
-            try database.run(users.create(ifNotExists: true) { table in
-                table.column(id, primaryKey: true)
-                table.column(name)
-                table.column(age)
-            })
+            try createTableIfNotExists()
             
             // Insert sample data into the 'users' table
-            let insert = users.insert(name <- "John", age <- 30)
-            try database.run(insert)
+            try insertSampleData()
             
             // Fetch data from the 'users' table
-            for user in try database.prepare(users) {
-                print("User id: \(user[id]), Name: \(user[name]), Age: \(user[age])")
-            }
+            try fetchAndPrintUserData()
             
+        } catch let error as NSError {
+            print("Error: \(error.localizedDescription)")
         } catch {
-            print("Error: \(error)")
+            print("An unknown error occurred.")
+        }
+    }
+    
+    // Function to create the 'users' table if it doesn't exist
+    func createTableIfNotExists() throws {
+        let users = Table(tableName)
+        
+        try database.run(users.create(ifNotExists: true) { table in
+            table.column(columnID, primaryKey: true)
+            table.column(columnName)
+            table.column(columnAge)
+        })
+    }
+    
+    // Function to insert sample data into the 'users' table
+    func insertSampleData() throws {
+        let users = Table(tableName)
+        
+        let insert = users.insert(columnName <- "John", columnAge <- 30)
+        try database.run(insert)
+    }
+    
+    // Function to fetch and print data from the 'users' table
+    func fetchAndPrintUserData() throws {
+        let users = Table(tableName)
+        
+        for user in try database.prepare(users) {
+            print("User id: \(user[columnID]), Name: \(user[columnName]), Age: \(user[columnAge])")
         }
     }
 }
