@@ -6,10 +6,13 @@ class ViewController: UIViewController {
     var database: Connection! // SQLite database connection
     
     // Constants for table name and column names
-    let tableName = "users"
-    let columnID = Expression<Int>("id")
-    let columnName = Expression<String>("name")
-    let columnAge = Expression<Int>("age")
+    enum TableNames: String {
+        case users
+    }
+    
+    enum ColumnNames: String {
+        case id, name, age
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,29 +43,29 @@ class ViewController: UIViewController {
     
     // Function to create the 'users' table if it doesn't exist
     func createTableIfNotExists() throws {
-        let users = Table(tableName)
+        let users = Table(TableNames.users.rawValue)
         
         try database.run(users.create(ifNotExists: true) { table in
-            table.column(columnID, primaryKey: true)
-            table.column(columnName)
-            table.column(columnAge)
+            table.column(ColumnNames.id.rawValue, primaryKey: true)
+            table.column(ColumnNames.name.rawValue)
+            table.column(ColumnNames.age.rawValue)
         })
     }
     
     // Function to insert sample data into the 'users' table
     func insertSampleData() throws {
-        let users = Table(tableName)
+        let users = Table(TableNames.users.rawValue)
         
-        let insert = users.insert(columnName <- "John", columnAge <- 30)
+        let insert = users.insert(ColumnNames.name.rawValue <- "John", ColumnNames.age.rawValue <- 30)
         try database.run(insert)
     }
     
     // Function to fetch and print data from the 'users' table
     func fetchAndPrintUserData() throws {
-        let users = Table(tableName)
+        let users = Table(TableNames.users.rawValue)
         
         for user in try database.prepare(users) {
-            print("User id: \(user[columnID]), Name: \(user[columnName]), Age: \(user[columnAge])")
+            print("User id: \(user[ColumnNames.id.rawValue]), Name: \(user[ColumnNames.name.rawValue]), Age: \(user[ColumnNames.age.rawValue])")
         }
     }
 }
